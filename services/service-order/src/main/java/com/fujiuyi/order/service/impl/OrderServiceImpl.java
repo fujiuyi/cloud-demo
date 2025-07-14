@@ -1,5 +1,6 @@
 package com.fujiuyi.order.service.impl;
 
+import com.fujiuyi.order.feign.ProductFeignClient;
 import com.fujiuyi.order.service.OrderService;
 import com.order.Order;
 import com.product.Product;
@@ -12,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -27,10 +25,16 @@ public class OrderServiceImpl implements OrderService {
 
     private final LoadBalancerClient loadBalancerClient;
 
-    public OrderServiceImpl(DiscoveryClient discoveryClient, RestTemplate restTemplate, LoadBalancerClient loadBalancerClient) {
+    private final ProductFeignClient productFeignClient;
+
+    public OrderServiceImpl(DiscoveryClient discoveryClient,
+                            RestTemplate restTemplate,
+                            LoadBalancerClient loadBalancerClient,
+                            ProductFeignClient productFeignClient) {
         this.discoveryClient = discoveryClient;
         this.restTemplate = restTemplate;
         this.loadBalancerClient = loadBalancerClient;
+        this.productFeignClient = productFeignClient;
     }
 
     @Override
@@ -44,6 +48,19 @@ public class OrderServiceImpl implements OrderService {
         Product product1 = getProductByLoadBalanceAnnotation(product);
         order.setTotalAmount(new BigDecimal(product1.getNum()).multiply(product1.getPrice()));
         order.setProducts(Collections.singletonList(product1));
+        return order;
+    }
+
+    @Override
+    public Order createProduct() {
+        Product product = new Product();
+        product.setId(new Random().nextLong());
+        product.setNum(11);
+        product.setPrice(new BigDecimal(11));
+        product.setProductName("11");
+
+        Order order = new Order();
+        order.setProducts(Collections.singletonList(createProductByFeignClient(product)));
         return order;
     }
 
@@ -98,5 +115,13 @@ public class OrderServiceImpl implements OrderService {
 
         String url = String.format("http://service-product/product/getProduct/%s", product);
         return restTemplate.getForObject(url, Product.class);
+    }
+
+    private Product getProductByFeignClient(Long product) {
+        return productFeignClient.getProduct( product);
+    }
+
+    private Product createProductByFeignClient(Product product) {
+        return productFeignClient.createProduct(product);
     }
 }

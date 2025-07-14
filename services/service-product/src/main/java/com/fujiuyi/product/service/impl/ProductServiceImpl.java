@@ -19,4 +19,9 @@ public class ProductServiceImpl implements ProductService {
         product.setProductName("productName");
         return product;
     }
+
+    @Override
+    public Product createProduct(Product product) {
+        return product.clone();
+    };
 }
