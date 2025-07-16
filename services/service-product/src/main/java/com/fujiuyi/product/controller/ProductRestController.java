@@ -16,7 +16,9 @@ public class ProductRestController {
     }
 
     @GetMapping("/getProduct/{id}")
-    public Product getProduct(@PathVariable("id") Long id) {
+    public Product getProduct(@PathVariable("id") Long id,
+                              @RequestHeader("X-Request-By") String header) {
+        log.info("server-product 接收到请求头：header：{}", header);
         log.info("server-product 接收到请求：productId：{}", id);
         return productService.getProductById(id);
     }

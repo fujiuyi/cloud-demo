@@ -45,7 +45,7 @@ public class OrderServiceImpl implements OrderService {
         order.setNickName("fujiuyi");
         order.setAddress("beijing");
 
-        Product product1 = getProductByLoadBalanceAnnotation(product);
+        Product product1 = getProductByFeignClient(product);
         order.setTotalAmount(new BigDecimal(product1.getNum()).multiply(product1.getPrice()));
         order.setProducts(Collections.singletonList(product1));
         return order;

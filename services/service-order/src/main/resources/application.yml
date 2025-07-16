@@ -14,3 +14,10 @@ spring:
   config:
     import:
       - nacos:service-order.properties?group=test_group
+  profiles:
+    include: feign
+
+logging:
+  level:
+    com.fujiuyi.order.feign:  debug
+

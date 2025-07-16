@@ -1,5 +1,6 @@
 package com.fujiuyi.order.feign;
 
+import com.fujiuyi.order.fallback.ProductFeignFallback;
 import com.product.Product;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 /**
  * 通过注解的方式就可以实现远程调用
  */
-@FeignClient(name = "service-product")
+@FeignClient(name = "service-product" ,fallback = ProductFeignFallback.class)
 public interface ProductFeignClient {
 
     @GetMapping("/product/getProduct/{id}")
