@@ -1,5 +1,7 @@
 package com.fujiuyi.order.service.impl;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.fujiuyi.order.feign.ProductFeignClient;
 import com.fujiuyi.order.service.OrderService;
 import com.order.Order;
@@ -37,6 +39,8 @@ public class OrderServiceImpl implements OrderService {
         this.productFeignClient = productFeignClient;
     }
 
+    //自定义熔断，定义名称,使用该注解时需要自定义回调信息
+    @SentinelResource(value = "createOrder", blockHandler = "createOrderFallback")
     @Override
     public Order createOrder(Long product, Long userId) {
         Order order = new Order();
@@ -48,6 +52,15 @@ public class OrderServiceImpl implements OrderService {
         Product product1 = getProductByFeignClient(product);
         order.setTotalAmount(new BigDecimal(product1.getNum()).multiply(product1.getPrice()));
         order.setProducts(Collections.singletonList(product1));
+        return order;
+    }
+
+    public Order createOrderFallback(Long product, Long userId, BlockException e) {
+        Order order = new Order();
+        order.setUserId(userId);
+        order.setId(null);
+        order.setNickName("未知用户");
+        order.setAddress("异常信息：" + e.getClass());
         return order;
     }
 
@@ -66,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 通过最原始的方式自行拼装ip地址和端口进行跨服务的调用
+     *
      * @param product product
      * @return Product
      */
@@ -90,6 +104,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 通过客户端负载均衡方式自行拼装ip地址和端口进行跨服务的调用
+     *
      * @param product product
      * @return Product
      */
@@ -108,6 +123,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 通过注解均衡方式自行拼装ip地址和端口进行跨服务的调用
+     *
      * @param product product
      * @return Product
      */
@@ -118,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private Product getProductByFeignClient(Long product) {
-        return productFeignClient.getProduct( product);
+        return productFeignClient.getProduct(product);
     }
 
     private Product createProductByFeignClient(Product product) {
